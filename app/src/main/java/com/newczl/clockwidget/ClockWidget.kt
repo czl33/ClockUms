@@ -1,6 +1,7 @@
 package com.newczl.clockwidget
 
 import Msg
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -11,6 +12,7 @@ import android.os.Build
 import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
+import android.widget.Toast
 import com.newczl.clockwidget.http.UmsApiService
 import com.newczl.clockwidget.service.TimeInsureService
 import com.newczl.clockwidget.utils.GlobalConst
@@ -21,8 +23,11 @@ import getBottomMsg
 import getCenterMsg
 import getTopMsg
 import getWorkState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.lang.Exception
 import java.util.*
 
 
@@ -61,9 +66,18 @@ class ClockWidget : AppWidgetProvider() {
         }
     }
 
+    @SuppressLint("ShowToast")
     private fun getServerTime(context:Context) {
         GlobalScope.launch {
-            val hotPlaylist = UmsApiService.instance.getHotPlaylist(Status.userId)
+            val hotPlaylist =
+                    try{
+                        UmsApiService.instance.getHotPlaylist(Status.userId)
+                    }catch (e:Exception){
+                        withContext(Dispatchers.Main){
+                            Toast.makeText(context,"更新失败,存在错误",Toast.LENGTH_LONG).show()
+                        }
+                        return@launch
+                    }
             val msg = hotPlaylist.msg
             Log.i(TAG,"hotPlaylist:$hotPlaylist")
             Log.i(TAG,TimeUtil.getCurrentMinute().toString())

@@ -1,3 +1,4 @@
+import android.util.Log
 import com.newczl.clockwidget.utils.TimeUtil
 import com.newczl.clockwidget.utils.WorkState
 import com.squareup.moshi.Json
@@ -173,7 +174,7 @@ internal fun Msg.getAddWorkTime(): Int {
     }else if(offWorkTime <= 1050) {
         //计算下班时间到 1050 差多少;
         //差多少直接加上
-        countTime += offWorkTime - 1050
+        countTime +=  1050 - offWorkTime
         if(lastTime <= 1095){
             //如果小于直接return出去，代表没有超过1050
             return countTime
@@ -280,17 +281,22 @@ internal fun Msg.getBottomMsg(): String {
         }
         WorkState.WORKING -> {
             val currentMinute = TimeUtil.getCurrentMinute()
-            return if (currentMinute > offWorkTime) {
+            return if (currentMinute >= offWorkTime) {
                 //加班时长
                 val currentAddWorkTime = getCurrentAddWorkTime()
+                Log.i("getAddWorkTime","currentAddWorkTime : $currentAddWorkTime")
+                Log.i("getAddWorkTime","currentMinute : $currentMinute")
+                //对当前加班时长除余数
                 val gapTime = currentAddWorkTime % 15
+                Log.i("getAddWorkTime","gapTime : $gapTime")
                 //剩余时间
-                val excessTime = TimeUtil.getCurrentMinute() + gapTime
+                val excessTime = currentMinute + (15 - gapTime)
                 val sumTime = if (excessTime in 1050..1095) {
                     1095 + gapTime
                 } else {
                     excessTime
                 }
+                Log.i("getAddWorkTime","gapTime : $sumTime")
                 "最近15分钟在：${TimeUtil.getTime(sumTime)}"
             } else {
                 "下班时间：${TimeUtil.getTime(offWorkTime)}"
